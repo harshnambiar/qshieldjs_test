@@ -3,8 +3,8 @@ import { quantumResistantEncrypt, quantumResistantDecrypt, encryptPrivateKey, de
 // === CONFIG ===
 const API_BASE_URL = 'http://localhost:5000/api';
 
-const mp = '';
-const apiKey = '';
+const mp = 'shield';
+const apiKey = '9661764145784228459';
 
 async function testEncrypt(){
     const phrase = document.getElementById('dp').value;
@@ -25,6 +25,7 @@ window.testDecrypt = testDecrypt;
 
 async function createEncrypted(apiKey, text) {
   const publicKey = await getMyPublicKey(apiKey);
+  //console.log(publicKey);
   const { encrypted_data } = await quantumResistantEncrypt(text, publicKey);
 
   return encrypted_data;
@@ -33,7 +34,9 @@ async function createEncrypted(apiKey, text) {
 
 async function createDecrypted(apiKey, encrypted_text, masterPassword) {
     const encryptedPrivateKey = await getMyEpk(apiKey);
+    console.log(masterPassword);
     const privateKeyB64 = await decryptPrivateKey(encryptedPrivateKey, masterPassword);
+    console.log(privateKeyB64);
     const password = await quantumResistantDecrypt(encrypted_text, privateKeyB64);
     return password;
 }

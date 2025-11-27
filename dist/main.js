@@ -4,7 +4,6 @@
 /***/ 4421:
 /***/ ((__unused_webpack_module, exports) => {
 
-var __webpack_unused_export__;
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -23,7 +22,7 @@ var __webpack_unused_export__;
     lookup[chars.charCodeAt(i)] = i;
   }
 
-  __webpack_unused_export__ = function(arraybuffer) {
+  exports.l = function(arraybuffer) {
     var bytes = new Uint8Array(arraybuffer),
     i, len = bytes.length, base64 = "";
 
@@ -43,7 +42,7 @@ var __webpack_unused_export__;
     return base64;
   };
 
-  __webpack_unused_export__ =  function(base64) {
+  exports.D =  function(base64) {
     var bufferLength = base64.length * 0.75,
     len = base64.length, i, p = 0,
     encoded1, encoded2, encoded3, encoded4;
@@ -80,7 +79,6 @@ var __webpack_unused_export__;
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
-var __webpack_unused_export__;
 
 /*
  * Copyright (c) 2017, Bubelich Mykola
@@ -136,8 +134,8 @@ var __webpack_unused_export__;
  * Implementation derived from chacha-ref.c version 20080118
  * See for details, 0x http, 0x//cr.yp.to/chacha/chacha-20080128.pdf
  */
-__webpack_unused_export__ = ({ value: true });
-__webpack_unused_export__ = void 0;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Chacha20 = void 0;
 /**
  *
  * @param {Uint8Array} key
@@ -315,7 +313,7 @@ var Chacha20 = /** @class */ (function () {
     };
     return Chacha20;
 }());
-__webpack_unused_export__ = Chacha20;
+exports.Chacha20 = Chacha20;
 //# sourceMappingURL=chacha20.js.map
 
 /***/ })
@@ -2752,7 +2750,7 @@ class MlKem768 extends MlKemBase {
  * // ssS === ssR
  * ```
  */
-class mlKem1024_MlKem1024 extends MlKemBase {
+class MlKem1024 extends MlKemBase {
     /**
      * Constructs a new instance of the MlKem1024 class.
      */
@@ -2964,7 +2962,7 @@ async function computeMac(data, key) {
 
 // === Post-Quantum Hybrid Encryption ===
 async function quantumResistantEncrypt(inputData, pubKeyB64) {
-  const publicKey = decode(pubKeyB64);
+  const publicKey = (0,base64_arraybuffer/* decode */.D)(pubKeyB64);
   const sender = new MlKem1024();
   const [ciphertext, sharedSecret] = await sender.encap(publicKey);
 
@@ -2972,7 +2970,7 @@ async function quantumResistantEncrypt(inputData, pubKeyB64) {
   const authTag = await computeMac(`${nonce}${encrypted}`, sharedSecret);
 
   return {
-    encrypted_data: `${encode(ciphertext)}:${nonce}:${encrypted}:${encode(authTag)}`,
+    encrypted_data: `${(0,base64_arraybuffer/* encode */.l)(ciphertext)}:${nonce}:${encrypted}:${(0,base64_arraybuffer/* encode */.l)(authTag)}`,
   };
 }
 
@@ -2982,22 +2980,22 @@ async function quantumResistantDecrypt(encryptedData, privateKeyB64) {
     throw new Error('Invalid encrypted data format');
   }
 
-  const privateKey = decode(privateKeyB64);
-  const ciphertext = decode(ctB64);
+  const privateKey = (0,base64_arraybuffer/* decode */.D)(privateKeyB64);
+  const ciphertext = (0,base64_arraybuffer/* decode */.D)(ctB64);
 
   const recipient = new MlKem1024();
   const sharedSecret = await recipient.decap(ciphertext, privateKey);
 
-  const encrypted = decode(encB64);
-  const nonce = decode(nonceB64);
-  const providedMac = decode(macB64);
+  const encrypted = (0,base64_arraybuffer/* decode */.D)(encB64);
+  const nonce = (0,base64_arraybuffer/* decode */.D)(nonceB64);
+  const providedMac = (0,base64_arraybuffer/* decode */.D)(macB64);
 
   const computedMac = await computeMac(`${nonceB64}${encB64}`, sharedSecret);
   if (!bytesEqual(computedMac, providedMac)) {
     throw new Error('Invalid MAC');
   }
 
-  const chacha = new Chacha20(sharedSecret, nonce);
+  const chacha = new chacha20(sharedSecret, nonce);
   const decrypted = chacha.decrypt(encrypted);
   return new TextDecoder().decode(decrypted);
 }
@@ -3006,12 +3004,12 @@ function postQuantumEncrypt(data, key) {
   const nonce = randomBytes(12);
   const plaintext = toBytes(data);
 
-  const chacha = new Chacha20(key, nonce);
+  const chacha = new chacha20(key, nonce);
   const encrypted = chacha.encrypt(plaintext);
 
   return {
-    encrypted: encode(encrypted),
-    nonce: encode(nonce),
+    encrypted: (0,base64_arraybuffer/* encode */.l)(encrypted),
+    nonce: (0,base64_arraybuffer/* encode */.l)(nonce),
   };
 }
 
@@ -3037,14 +3035,14 @@ async function decryptPrivateKey(encryptedPrivateKey, masterPassword) {
   const key = toBytes(masterPassword.padEnd(32, '\0').slice(0, 32));
   const computedMac = await computeMac(`${nonceB64}${encryptedB64}`, key);
 
-  if (!bytesEqual(computedMac, decode(authTagB64))) {
+  if (!bytesEqual(computedMac, (0,base64_arraybuffer/* decode */.D)(authTagB64))) {
     throw new Error('Wrong password or corrupted data');
   }
 
-  const nonce = decode(nonceB64);
-  const encrypted = decode(encryptedB64);
+  const nonce = (0,base64_arraybuffer/* decode */.D)(nonceB64);
+  const encrypted = (0,base64_arraybuffer/* decode */.D)(encryptedB64);
 
-  const chacha = new Chacha20(key, nonce);
+  const chacha = new chacha20(key, nonce);
   const decrypted = chacha.decrypt(encrypted);
 
   return new TextDecoder().decode(decrypted);
@@ -3052,6 +3050,65 @@ async function decryptPrivateKey(encryptedPrivateKey, masterPassword) {
 
 ;// ./src/index.js
 
+
+// === CONFIG ===
+const API_BASE_URL = 'http://localhost:5000/api';
+
+const mp = 'quantum';
+const apiKey = '9661764145784228459';
+
+async function testEncrypt(){
+    const phrase = document.getElementById('dp').value;
+    const res1 = await createEncrypted(apiKey, phrase);
+    console.log(res1);
+    
+}
+window.testEncrypt = testEncrypt;
+
+
+async function testDecrypt(){
+    const phrase = document.getElementById('ep').value;
+    const res1 = await createDecrypted(apiKey, phrase, mp);
+    console.log(res1);
+    
+}
+window.testDecrypt = testDecrypt;
+
+async function createEncrypted(apiKey, text) {
+  const publicKey = await getMyPublicKey(apiKey);
+  const { encrypted_data } = await quantumResistantEncrypt(text, publicKey);
+
+  return encrypted_data;
+}
+
+
+async function createDecrypted(apiKey, encrypted_text, masterPassword) {
+    const encryptedPrivateKey = await getMyEpk(apiKey);
+    const privateKeyB64 = await decryptPrivateKey(encryptedPrivateKey, masterPassword);
+    const password = await quantumResistantDecrypt(encrypted_text, privateKeyB64);
+    return password;
+}
+
+
+// === API CALLS ===
+
+async function getMyPublicKey(apiKey) {
+  const res = await fetch(`${API_BASE_URL}/qshield/public-key`, {
+    method: 'GET',
+    headers: { 'api_key': apiKey }
+  });
+  const { public_key } = await res.json();
+  return public_key;
+}
+
+async function getMyEpk(apiKey) {
+  const res = await fetch(`${API_BASE_URL}/qshield/epk`, {
+    method: 'GET',
+    headers: { 'api_key': apiKey }
+  });
+  const { encrypted_private_key } = await res.json();
+  return encrypted_private_key;
+}
 
 })();
 

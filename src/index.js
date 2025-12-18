@@ -3,9 +3,13 @@ import detectEthereumProvider from "@metamask/detect-provider";
 import Web3 from "web3";
 import * as ethers from "ethers";
 import artifact30 from "./QshieldLeaderboard.json";
+import artifact50 from "./QshieldLeaderboard2.json";
+import artifact_messenger from "./QshieldMessenger.json";
+import artifact_desci from "./QshieldDescivault.json";
 
 // === CONFIG ===
-const API_BASE_URL = 'https://quantumsure.onrender.com/api';
+//const API_BASE_URL = 'https://quantumsure.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 const mp = 'shield';
 const apiKey = '9661764145784228459';
@@ -74,7 +78,7 @@ async function testFetch() {
     const acc = localStorage.getItem("acc");
     const web3 = new Web3(window.ethereum);
     var abiInstance = artifact30.abi;
-    var contract = new web3.eth.Contract(abiInstance, "0x259e357662766D03F8eEa654834AAb13513078De");
+    var contract = new web3.eth.Contract(abiInstance, "0x6CeE2EbDA4512a6b5dAC74d3FCb0BBf4b9a7910C");
 
 
 
@@ -101,7 +105,7 @@ async function testSubmit() {
     const cid = await web3.eth.getChainId();
 
 
-    var contract = new web3.eth.Contract(abiInstance, "0x259e357662766D03F8eEa654834AAb13513078De");
+    var contract = new web3.eth.Contract(abiInstance, "0x6CeE2EbDA4512a6b5dAC74d3FCb0BBf4b9a7910C");
     const res = await fetch(`${API_BASE_URL}/qshield/sign`, {
     method: 'POST',
     headers: { 'api_key': apiKey, 'Content-Type': 'application/json'  },
@@ -135,7 +139,6 @@ async function testSubmit() {
 
 
 
-
     try {
       gasEst = await contract.methods.submitScore(d, 100, Number(vals.nonce), Number(vals.v), vals.r, vals.s).estimateGas({from: acc});
       gasEst = (BigInt(2) * gasEst)/BigInt(1);
@@ -159,6 +162,246 @@ async function testSubmit() {
 
 }
 window.testSubmit = testSubmit;
+
+
+async function testFetch2() {
+    const acc = localStorage.getItem("acc");
+    const web3 = new Web3(window.ethereum);
+    var abiInstance = artifact_messenger.abi;
+    var contract = new web3.eth.Contract(abiInstance, "0x3F8a211749020bfb29657be10db3EA19bBD67F86");
+
+
+
+
+  try  {
+    var res1 = await contract.methods['getTotalMessages']().call({from: acc});
+    console.log(res1)
+  }
+  catch (err){
+    console.log(err);
+  }
+
+
+
+}
+window.testFetch2 = testFetch2;
+
+
+async function testSubmit2() {
+    const acc = localStorage.getItem("acc");
+    const recipient = '0xd2321B9E34C928a475f25eb37327AEEcf0962E6c';
+    const web3 = new Web3(window.ethereum);
+    var abiInstance = artifact_messenger.abi;
+    const d = localStorage.getItem("edata");
+    const cid = await web3.eth.getChainId();
+
+
+    var contract = new web3.eth.Contract(abiInstance, "0x3F8a211749020bfb29657be10db3EA19bBD67F86");
+    const res = await fetch(`${API_BASE_URL}/qshield/sign/msg`, {
+    method: 'POST',
+    headers: { 'api_key': apiKey, 'Content-Type': 'application/json'  },
+    body: JSON.stringify({
+      data: { senderAddress: acc, recipientAddress: recipient, chainId: cid }
+    }),
+    });
+
+    const vals = await res.json();
+
+    const vhex = web3.utils.toHex(vals.v);
+
+    const hashFromFrontend = web3.utils.soliditySha3(
+    { type: 'address', value: acc },
+    { type: 'address', value: recipient },
+    { type: 'uint256', value: vals.nonce + 1},
+    { type: 'uint256', value: vals.nonce },
+    { type: 'uint256', value: cid }
+    );
+
+
+
+    const recovered = web3.eth.accounts.recover(hashFromFrontend, vhex, vals.r, vals.s);
+    console.log("Recovered signer address:", recovered);
+
+    const recovered2 = web3.eth.accounts.recover(vals.hash, vhex, vals.r, vals.s);
+    console.log("Recovered signer address 2:", recovered2);
+
+
+
+    var gasEst = BigInt(100000);
+    var gasPriceEst = BigInt(10);
+
+
+
+
+
+    try {
+      gasEst = await contract.methods.sendMessage(recipient, d, Number(vals.nonce), Number(vals.v), vals.r, vals.s).estimateGas({from: acc});
+      gasEst = (BigInt(2) * gasEst)/BigInt(1);
+      gasPriceEst = await web3.eth.getGasPrice();
+      gasPriceEst = (BigInt(2) * gasPriceEst)/BigInt(1);
+    }
+    catch (err){
+      console.log(err);
+      return;
+    }
+
+
+  contract.methods.sendMessage(recipient, d, Number(vals.nonce), Number(vals.v), vals.r, vals.s)
+    .send({from: acc, gas: gasEst, gasPrice: gasPriceEst})
+    .catch((error) => {
+        console.error('Call Error:', error);
+        return;
+    });
+
+
+
+}
+window.testSubmit2 = testSubmit2;
+
+
+async function testCreate3() {
+    const acc = localStorage.getItem("acc");
+    const web3 = new Web3(window.ethereum);
+    var abiInstance = artifact_desci.abi;
+    const cid = await web3.eth.getChainId();
+
+
+    var contract = new web3.eth.Contract(abiInstance, "0x9D27B112112a8452CEEc55D1CB71EB45551b019d");
+    
+
+
+
+    var gasEst = BigInt(100000);
+    var gasPriceEst = BigInt(10);
+
+
+
+
+
+    try {
+      gasEst = await contract.methods.createProject("test project", "just a test").estimateGas({from: acc});
+      gasEst = (BigInt(2) * gasEst)/BigInt(1);
+      gasPriceEst = await web3.eth.getGasPrice();
+      gasPriceEst = (BigInt(2) * gasPriceEst)/BigInt(1);
+    }
+    catch (err){
+      console.log(err);
+      
+      
+    }
+    
+    
+
+  const pid = contract.methods.createProject("test project", "just a test")
+    .send({from: acc, gas: gasEst, gasPrice: gasPriceEst})
+    .catch((error) => {
+        console.error('Call Error:', error);
+        return;
+    });
+    
+    console.log(pid);
+
+
+
+}
+window.testCreate3 = testCreate3;
+
+
+
+async function testFetch3() {
+    const acc = localStorage.getItem("acc");
+    const web3 = new Web3(window.ethereum);
+    var abiInstance = artifact_desci.abi;
+    var contract = new web3.eth.Contract(abiInstance, "0x9D27B112112a8452CEEc55D1CB71EB45551b019d");
+
+
+
+
+  try  {
+    var res1 = await contract.methods['getContributors'](1).call({from: acc});
+    console.log(res1)
+  }
+  catch (err){
+    console.log(err);
+  }
+
+
+
+}
+window.testFetch3 = testFetch3;
+
+
+async function testSubmit3() {
+    const acc = localStorage.getItem("acc");
+    const recipient = '0xd2321B9E34C928a475f25eb37327AEEcf0962E6c';
+    const web3 = new Web3(window.ethereum);
+    var abiInstance = artifact_desci.abi;
+    const d = localStorage.getItem("edata");
+    const cid = await web3.eth.getChainId();
+
+
+    var contract = new web3.eth.Contract(abiInstance, "0x9D27B112112a8452CEEc55D1CB71EB45551b019d");
+    const res = await fetch(`${API_BASE_URL}/qshield/sign/desci`, {
+    method: 'POST',
+    headers: { 'api_key': apiKey, 'Content-Type': 'application/json'  },
+    body: JSON.stringify({
+      data: { senderAddress: acc, recipientAddress: recipient, chainId: cid }
+    }),
+    });
+
+    const vals = await res.json();
+
+    const vhex = web3.utils.toHex(vals.v);
+
+    const hashFromFrontend = web3.utils.soliditySha3(
+    { type: 'address', value: acc },
+    { type: 'address', value: recipient },
+    { type: 'uint256', value: vals.nonce + 1},
+    { type: 'uint256', value: vals.nonce },
+    { type: 'uint256', value: cid }
+    );
+
+
+
+    const recovered = web3.eth.accounts.recover(hashFromFrontend, vhex, vals.r, vals.s);
+    console.log("Recovered signer address:", recovered);
+
+    const recovered2 = web3.eth.accounts.recover(vals.hash, vhex, vals.r, vals.s);
+    console.log("Recovered signer address 2:", recovered2);
+
+
+
+    var gasEst = BigInt(100000);
+    var gasPriceEst = BigInt(10);
+
+
+
+
+
+    try {
+      gasEst = await contract.methods.sendMessage(recipient, d, Number(vals.nonce), Number(vals.v), vals.r, vals.s).estimateGas({from: acc});
+      gasEst = (BigInt(2) * gasEst)/BigInt(1);
+      gasPriceEst = await web3.eth.getGasPrice();
+      gasPriceEst = (BigInt(2) * gasPriceEst)/BigInt(1);
+    }
+    catch (err){
+      console.log(err);
+      return;
+    }
+
+
+  contract.methods.sendMessage(recipient, d, Number(vals.nonce), Number(vals.v), vals.r, vals.s)
+    .send({from: acc, gas: gasEst, gasPrice: gasPriceEst})
+    .catch((error) => {
+        console.error('Call Error:', error);
+        return;
+    });
+
+
+
+}
+window.testSubmit3 = testSubmit3;
+
 
 // metamask
 
@@ -251,3 +494,10 @@ async function startApp(provider) {
 
   }
 }
+
+
+//0x6CeE2EbDA4512a6b5dAC74d3FCb0BBf4b9a7910C l30
+
+//0xB67560d2D22BF5dCd5ee89a0e5d88aa9Acd5A878 desci
+
+//0x3F8a211749020bfb29657be10db3EA19bBD67F86 mess

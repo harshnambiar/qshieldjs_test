@@ -8,8 +8,8 @@ import artifact_messenger from "./QshieldMessenger.json";
 import artifact_desci from "./QshieldDescivault.json";
 
 // === CONFIG ===
-//const API_BASE_URL = 'https://quantumsure.onrender.com/api';
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://quantumsure.onrender.com/api';
+//const API_BASE_URL = 'http://localhost:5000/api';
 
 const mp = 'shield';
 const apiKey = '9661764145784228459';
@@ -318,7 +318,7 @@ async function testFetch3() {
 
 
   try  {
-    var res1 = await contract.methods['getContributors'](1).call({from: acc});
+    var res1 = await contract.methods['getEntry'](0).call({from: acc});
     console.log(res1)
   }
   catch (err){
@@ -333,7 +333,7 @@ window.testFetch3 = testFetch3;
 
 async function testSubmit3() {
     const acc = localStorage.getItem("acc");
-    const recipient = '0xd2321B9E34C928a475f25eb37327AEEcf0962E6c';
+    const pid = 1;
     const web3 = new Web3(window.ethereum);
     var abiInstance = artifact_desci.abi;
     const d = localStorage.getItem("edata");
@@ -341,22 +341,23 @@ async function testSubmit3() {
 
 
     var contract = new web3.eth.Contract(abiInstance, "0x9D27B112112a8452CEEc55D1CB71EB45551b019d");
+    
     const res = await fetch(`${API_BASE_URL}/qshield/sign/desci`, {
     method: 'POST',
     headers: { 'api_key': apiKey, 'Content-Type': 'application/json'  },
     body: JSON.stringify({
-      data: { senderAddress: acc, recipientAddress: recipient, chainId: cid }
+      data: { callerAddress: acc, submissionHash: web3.utils.keccak256(d), projectId: pid, chainId: cid }
     }),
     });
 
     const vals = await res.json();
 
     const vhex = web3.utils.toHex(vals.v);
-
+    
     const hashFromFrontend = web3.utils.soliditySha3(
     { type: 'address', value: acc },
-    { type: 'address', value: recipient },
-    { type: 'uint256', value: vals.nonce + 1},
+    { type: 'bytes32', value: web3.utils.keccak256(d) },
+    { type: 'uint256', value: pid},
     { type: 'uint256', value: vals.nonce },
     { type: 'uint256', value: cid }
     );
@@ -369,7 +370,15 @@ async function testSubmit3() {
     const recovered2 = web3.eth.accounts.recover(vals.hash, vhex, vals.r, vals.s);
     console.log("Recovered signer address 2:", recovered2);
 
-
+    const data = {
+        encryptedBlob: d,
+        projectId: pid,
+        cid: "010101",
+        title: "First Entry",
+        isPublic: true,
+        doi: "01",
+        tags: ["Test", "QA"]
+    }
 
     var gasEst = BigInt(100000);
     var gasPriceEst = BigInt(10);
@@ -379,18 +388,18 @@ async function testSubmit3() {
 
 
     try {
-      gasEst = await contract.methods.sendMessage(recipient, d, Number(vals.nonce), Number(vals.v), vals.r, vals.s).estimateGas({from: acc});
+      gasEst = await contract.methods.submitData(data, Number(vals.nonce), Number(vals.v), vals.r, vals.s).estimateGas({from: acc});
       gasEst = (BigInt(2) * gasEst)/BigInt(1);
       gasPriceEst = await web3.eth.getGasPrice();
       gasPriceEst = (BigInt(2) * gasPriceEst)/BigInt(1);
     }
     catch (err){
       console.log(err);
-      return;
+      
     }
 
 
-  contract.methods.sendMessage(recipient, d, Number(vals.nonce), Number(vals.v), vals.r, vals.s)
+  contract.methods.submitData(data, Number(vals.nonce), Number(vals.v), vals.r, vals.s)
     .send({from: acc, gas: gasEst, gasPrice: gasPriceEst})
     .catch((error) => {
         console.error('Call Error:', error);
